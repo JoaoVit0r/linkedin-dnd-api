@@ -1,5 +1,6 @@
 const db = require("../models");
 const Class = db.class;
+const Level = db.level;
 
 const fs = require("fs");
 const path = require("path");
@@ -23,78 +24,99 @@ exports.create = (req, res) => {
       return;
     }
 
-    const pathToFile = path.resolve(
-      __dirname,
-      "..",
-      "..",
-      "uploads/" + req.file.filename
-    );
-    const classObj = new Class({
-      index,
-      name,
-      img: {
-        data: fs.readFileSync(pathToFile),
-        contentType: "image/png",
-      },
-    });
+    if (!req.file) {
+      res.status(400).send({ message: "Image is required" });
+      return;
+    }
 
-    fs.unlink(pathToFile, (err) => {
-      if (err) {
-        console.log("Error on delete File.");
-        return
-      }
-      console.log("File is deleted.");
-      return
-    });
-
-    classObj.save((err, classObj) => {
+    const levels = JSON.parse(req.body.levels ?? "");
+    if (!levels || !levels.length) {
+      res.status(400).send({ message: "Levels are required" });
+      return;
+    }
+    // const levels = req.body.levels.map((level) => {
+    //   return new Level(level);
+    // });
+    Level.insertMany(levels, (err, levels) => {
       if (err) {
         res.status(500).send({ message: err });
         return;
       }
 
-      res.send({ message: "Class was registered successfully!" });
-      return;
-      // if (req.body.roles) {
-      //   Role.find(
-      //     {
-      //       name: { $in: req.body.roles }
-      //     },
-      //     (err, roles) => {
-      //       if (err) {
-      //         res.status(500).send({ message: err });
-      //         return;
-      //       }
+      const pathToFile = path.resolve(
+        __dirname,
+        "..",
+        "..",
+        "uploads/" + req.file.filename
+      );
+      const classObj = new Class({
+        index,
+        name,
+        img: {
+          data: fs.readFileSync(pathToFile),
+          contentType: "image/png",
+        },
+        levels: levels.map((level) => level._id),
+      });
 
-      //       classObj.roles = roles.map(role => role._id);
-      //       classObj.save(err => {
-      //         if (err) {
-      //           res.status(500).send({ message: err });
-      //           return;
-      //         }
+      fs.unlink(pathToFile, (err) => {
+        if (err) {
+          console.log("Error on delete File.");
+          return;
+        }
+        console.log("File is deleted.");
+        return;
+      });
 
-      //         res.send({ message: "User was registered successfully!" });
-      //       });
-      //     }
-      //   );
-      // } else {
-      //   Role.findOne({ name: "user" }, (err, role) => {
-      //     if (err) {
-      //       res.status(500).send({ message: err });
-      //       return;
-      //     }
+      classObj.save((err, classObj) => {
+        if (err) {
+          res.status(500).send({ message: err });
+          return;
+        }
 
-      //     classObj.roles = [role._id];
-      //     classObj.save(err => {
-      //       if (err) {
-      //         res.status(500).send({ message: err });
-      //         return;
-      //       }
+        res.send({ message: "Class was registered successfully!" });
+        return;
+        // if (req.body.roles) {
+        //   Role.find(
+        //     {
+        //       name: { $in: req.body.roles }
+        //     },
+        //     (err, roles) => {
+        //       if (err) {
+        //         res.status(500).send({ message: err });
+        //         return;
+        //       }
 
-      //       res.send({ message: "User was registered successfully!" });
-      //     });
-      //   });
-      // }
+        //       classObj.roles = roles.map(role => role._id);
+        //       classObj.save(err => {
+        //         if (err) {
+        //           res.status(500).send({ message: err });
+        //           return;
+        //         }
+
+        //         res.send({ message: "User was registered successfully!" });
+        //       });
+        //     }
+        //   );
+        // } else {
+        //   Role.findOne({ name: "user" }, (err, role) => {
+        //     if (err) {
+        //       res.status(500).send({ message: err });
+        //       return;
+        //     }
+
+        //     classObj.roles = [role._id];
+        //     classObj.save(err => {
+        //       if (err) {
+        //         res.status(500).send({ message: err });
+        //         return;
+        //       }
+
+        //       res.send({ message: "User was registered successfully!" });
+        //     });
+        //   });
+        // }
+      });
     });
   });
 };

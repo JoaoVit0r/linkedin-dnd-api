@@ -9,7 +9,13 @@ const Class = mongoose.model(
     {
         data: Buffer,
         contentType: String
-    }
+    },
+    levels: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Level"
+      }
+    ]
   })
 );
 

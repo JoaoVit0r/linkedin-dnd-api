@@ -6,7 +6,8 @@ const cookieParser = require("cookie-parser");
 const app = express();
 
 var corsOptions = {
-  origin: "http://localhost:3000"
+  origin: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
+  credentials: true,
 };
 
 app.use(cors(corsOptions));
@@ -43,6 +44,7 @@ app.get("/", (req, res) => {
 require("./app/routes/auth.routes")(app);
 require("./app/routes/user.routes")(app);
 require("./app/routes/class.routes")(app);
+require("./app/routes/level.routes")(app);
 
 // set port, listen for requests
 const PORT = process.env.PORT || 8000;
