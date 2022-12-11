@@ -15,32 +15,36 @@ verifyToken = (req, res, next) => {
   // Read the cookie named 'token' and bail out if it doesn't exist
   const { token } = req.cookies;
   if (!token) {
-    return clearTokenAndNext();
+    return res.status(403).send({ message: "No token provided!" });
+    // return clearTokenAndNext();
   }
   // Test the validity of the token
   jwt.verify(token, process.env.SECRET, (err, decodedToken) => {
     if (err) {
-      return clearTokenAndNext();
+      res.clearCookie("token");
+      return res.status(401).send({ message: "Unauthorized!" });
     }
     // Compare the token expiry (in seconds) to the current time (in milliseconds)
     // Bail out if the token has expired
     if (decodedToken.exp <= Date.now() / 1000) {
-      return clearTokenAndNext();
+      res.clearCookie("token");
+      return res.status(401).send({ message: "Unauthorized!" });
     }
-    // Read the session ID from the decoded token
-    // and attempt to fetch the session by ID
-    // Note: getSession retrieves the session (e.g. from Redis, Database, etc).
-    const { sid: sessionId } = decodedToken;
-    getSession(sessionId, (err, session) => {
-      if (err) {
-        return clearTokenAndNext();
-      }
-      // Attach the session and user objects to the request
-      // (the following steps will access them)
-      req.session = session;
-      req.user = session.user;
-      next();
-    });
+    req.userId = decodedToken.id;
+    next();
+    // // Read the session ID from the decoded token
+    // // and attempt to fetch the session by ID
+    // // Note: getSession retrieves the session (e.g. from Redis, Database, etc).
+    // const { sid: sessionId } = decodedToken;
+    // getSession(sessionId, (err, session) => {
+    //   if (err) {
+    //     return clearTokenAndNext();
+    //   }
+    //   // Attach the session and user objects to the request
+    //   // (the following steps will access them)
+    //   req.session = session;
+    //   req.user = session.user;
+    // });
   });
   // let token = req.headers["x-access-token"];
 
