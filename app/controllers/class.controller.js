@@ -1,10 +1,8 @@
 const db = require("../models");
 const Class = db.class;
-const User = db.user;
-const Role = db.role;
 
-var jwt = require("jsonwebtoken");
-var bcrypt = require("bcryptjs");
+const fs = require("fs");
+const path = require("path");
 
 exports.create = (req, res) => {
   const { index, name } = req.body;
@@ -25,9 +23,28 @@ exports.create = (req, res) => {
       return;
     }
 
+    const pathToFile = path.resolve(
+      __dirname,
+      "..",
+      "..",
+      "uploads/" + req.file.filename
+    );
     const classObj = new Class({
       index,
       name,
+      img: {
+        data: fs.readFileSync(pathToFile),
+        contentType: "image/png",
+      },
+    });
+
+    fs.unlink(pathToFile, (err) => {
+      if (err) {
+        console.log("Error on delete File.");
+        return
+      }
+      console.log("File is deleted.");
+      return
     });
 
     classObj.save((err, classObj) => {

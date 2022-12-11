@@ -4,7 +4,12 @@ const Class = mongoose.model(
   "Class",
   new mongoose.Schema({
     index: String,
-    name: String
+    name: String,
+    img:
+    {
+        data: Buffer,
+        contentType: String
+    }
   })
 );
 
