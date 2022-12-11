@@ -12,4 +12,6 @@ module.exports = function(app) {
 
   app.get("/api/classes", [authJwt.verifyToken], controller.list);
 
+  app.post("/api/classes", [authJwt.verifyToken], controller.create);
+
 };
